@@ -1,30 +1,92 @@
 <?php
 
-namespace Michalsn\CodeIgniterNestedModel;
+namespace CI4Extensions\Database;
 
 use CodeIgniter\Model;
 use InvalidArgumentException;
 use ReflectionObject;
 
-trait NestedModelTrait
+trait RelationshipsTrait
 {
     protected array $validRelations      = ['hasOne', 'hasMany'];
     protected array $activeRelations     = [];
     protected array $clausesForRelations = [];
+    protected array $relations = [];
+    /**
+     * Defines single relationship
+     *
+     * @param string $fieldName
+     * @param object|string $model
+     * @param string $foreignKey
+     * @param string $localKey
+     * @return boolean
+     */
+    public function hasOne(string $fieldName, $model, ?string $foreignKey = null, ?string $localKey = 'id')
+    {
+        // make sure model is string
+        if (is_object($model)) {
+            $model = get_class($model);
+        }
+
+        // make sure foreignKey is valid
+        if (!$foreignKey) {
+            $foreignKey = $this->getRelationForeignKey(model($model));
+        }
+
+        // make sure localKey is valid
+        if (!$localKey) {
+            $localKey = 'id';
+        }
+
+        // add relationship
+        $this->relations[$fieldName] = ['hasOne', $model, $localKey, $foreignKey];
+        return $this;
+    }
+
+    /**
+     * Defines multiple relationships
+     *
+     * @param string $fieldName
+     * @param string|object $model
+     * @param string $foreignKey
+     * @param string $localKey
+     * @return boolean
+     */
+    public function hasMany(string $fieldName, $model, ?string $foreignKey = null, ?string $localKey = 'id')
+    {
+        // make sure model is string
+        if (is_object($model)) {
+            $model = get_class($model);
+        }
+
+        // make sure foreignKey is valid
+        if (!$foreignKey) {
+            $foreignKey = $this->getRelationForeignKey(model($model));
+        }
+
+        // make sure localKey is valid
+        if (!$localKey) {
+            $localKey = 'id';
+        }
+
+        // add relationship
+        $this->relations[$fieldName] = ['hasMany', $model, $localKey, $foreignKey];
+        return $this;
+    }
 
     /**
      * Set defined relation for usage.
      */
-    public function with(string $name, ?callable $clause = null): static
+    public function with(string $name, ?callable $clause = null): self
     {
-        if (! $this->relations[$name]) {
+        if (!$this->relations[$name]) {
             throw new InvalidArgumentException(sprintf('Incorrect relation name: %s', $name));
         }
 
         $this->activeRelations[$name] = $this->relations[$name];
         $this->clausesForRelations[$name] = $clause;
 
-        if (! isset($this->afterFind[0]) || $this->afterFind[0] !== 'applyRelations') {
+        if (!isset($this->afterFind[0]) || $this->afterFind[0] !== 'applyRelations') {
             array_unshift($this->afterFind, 'applyRelations');
         }
 
@@ -41,7 +103,7 @@ trait NestedModelTrait
         }
 
         foreach ($this->activeRelations as $name => $relation) {
-            if (! in_array($relation[0], $this->validRelations)) {
+            if (!in_array($relation[0], $this->validRelations)) {
                 throw new InvalidArgumentException(sprintf('Incorrect relation type: %s', $relation[0]));
             }
             $this->applyRelation($name, $relation[0], $relation[1], $relation[2] ?? null, $relation[3] ?? null, $data);
@@ -67,7 +129,7 @@ trait NestedModelTrait
 
         $modelInstance->whereIn($foreignKey, $ids);
 
-        if (! empty($this->clausesForRelations[$name]) && is_callable($this->clausesForRelations[$name])) {
+        if (!empty($this->clausesForRelations[$name]) && is_callable($this->clausesForRelations[$name])) {
             $this->clausesForRelations[$name]();
         }
 

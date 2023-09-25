@@ -1,0 +1,26 @@
+{
+    "name": "immachakata/ci4-relationships",
+    "description": "Easily add and manage database relationships in CodeIgniter 4",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "CI4Extensions\\Database\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Isaac Machakata",
+            "email": "isaac@caasi.co.zw"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "codeigniter4/framework":"^4.0"
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}
