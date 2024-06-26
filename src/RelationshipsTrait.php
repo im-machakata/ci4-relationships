@@ -152,7 +152,7 @@ trait RelationshipsTrait
 
             if ($relationType === 'hasOne') {
                 foreach ($results as $row) {
-                    $relatedData[$this->tempReturnType === 'array' ? $row[$foreignKey] : $row->{$foreignKey}] = $row;
+                    $relatedData[$row[$foreignKey] ?? $row->{$foreignKey}] = $row;
                 }
             } else {
                 foreach ($results as $row) {
