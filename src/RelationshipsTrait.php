@@ -2,9 +2,9 @@
 
 namespace CI4Extensions\Database;
 
+use ReflectionObject;
 use CodeIgniter\Model;
 use InvalidArgumentException;
-use ReflectionObject;
 
 trait RelationshipsTrait
 {
@@ -79,8 +79,14 @@ trait RelationshipsTrait
      */
     public function with(string $name, ?callable $clause = null): self
     {
-        if (!$this->relations[$name]) {
+        if (!$this->relations[$name] || !method_exists($this, $name)) {
             throw new InvalidArgumentException(sprintf('Incorrect relation name: %s', $name));
+        }
+
+        // if user used a function and not initialize, call relationship function
+        if (!$this->relations[$name] && method_exists($this, $name)) {
+            call_user_func([$this, $name]);
+            return $this->with($name, $clause);
         }
 
         $this->activeRelations[$name] = $this->relations[$name];
